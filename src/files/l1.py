@@ -190,7 +190,7 @@ Important formatting rules:
            content = response.choices[0].message.content
            return {
                "final_response": content,
-               "messages": [AIMessage(content=content)]
+               "messages": state["messages"] + [AIMessage(content=content)]
            }
        except Exception as e:
            return {
