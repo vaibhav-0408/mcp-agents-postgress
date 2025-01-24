@@ -101,7 +101,7 @@ Important formatting rules:
        memory_context = "\n".join(f"{'User' if isinstance(m, HumanMessage) else 'Assistant'}: {m.content}" 
                                for m in state['messages'][:-1])
        
-       system_content = f"{self.system_template}\n\nMemory Context:\n{memory_context}\n\nCurrent Query: {current_query}"
+       system_content = f"{self.system_template}\n\nMemory Context:\n{memory_context}"
        
        messages = [
            {"role": "system", "content": system_content},
@@ -169,17 +169,13 @@ Important formatting rules:
            }
            
        tool_results_text = "\n".join(f"{r['tool']}: {r['result']}" for r in state.get("tool_results", []))
+       memory_context = "\n".join(f"{'User' if isinstance(m, HumanMessage) else 'Assistant'}: {m.content}" 
+                        for m in state['messages'][:-1])
+       system_content = f"{self.system_template}\n\nMemory Context:\n{memory_context}"
        messages = [
-           {"role": "system", "content":"""Based on the query and tool results, provide a direct, clear response that:
-1. Answers the specific question asked
-2. Includes relevant metrics and insights
-3. Uses natural language without meta-commentary
-4. Maintains second-person perspective
-5. Keeps focus on essential information
-6. Maintain consistency in structure"""},
-           {"role": "user", "content": f"{state['messages'][-1].content}\n\nResults:\n{tool_results_text}"}
-       ]
-
+            {"role": "system", "content": system_content},
+            {"role": "user", "content": f"{state['messages'][-1].content}\n\nResults:\n{tool_results_text}"}
+        ]
        try:
            response = self.mcp_manager.groq.chat.completions.create(
                model="llama3-70b-8192",
@@ -222,7 +218,7 @@ Important formatting rules:
               "delete_messages": "delete_messages"
           }
       )
-      
+    
       workflow.add_edge("execute_tools", "generate_response")
       workflow.add_edge("generate_response", "delete_messages")
       workflow.add_edge("delete_messages", END)
@@ -231,58 +227,60 @@ Important formatting rules:
       
       return workflow
 
-async def main(server_script_path: str):
-  mcp_manager = MCPToolManager()
-  try:
-      tools = await mcp_manager.initialize(server_script_path)
-      workflow = LangGraphMCPWorkflow(mcp_manager)
-      graph = workflow.create_graph().compile(checkpointer=workflow.memory)
-      
-      print("\nLangGraph MCP Client Started!")
-      print("Type your queries or 'quit' to exit.")
-      
-      config = {"configurable": {"thread_id": "1"}}
-      messages = []
-      
-      while True:
-          query = input("\nQuery: ").strip()
-          if query.lower() == 'quit':
-              break
 
-          messages.append(HumanMessage(content=query))
-          state = {
-              "messages": messages,
-              "tools": tools
-              "current_tool_calls": [],
-              "tool_results": [],
-              "final_response": None
-          }
-          
-          try:
-               final_state = await graph.ainvoke(state, config)
-               messages = final_state.get("messages", messages)  # Update messages from state
-               
-               print(f"\nMessages in memory: {len(messages)}")
-               print("\n=== MEMORY STATE ===")
-               print(f"Total Messages: {len(messages)}")
-               print("\nMessages:")
-               for i, msg in enumerate(messages):
-                   print(f"{i}. {type(msg).__name__}: {msg.content}")
-               print("==================\n")
-               
-               if final_state.get("final_response"):
-                   print("\nResponse:", final_state["final_response"]) 
-               
-          except Exception as e:
-              print(f"\nError: {str(e)}")
-          
-  finally:
-      await mcp_manager.cleanup()
+
+async def main(server_script_path: str):
+    mcp_manager = MCPToolManager()
+    try:
+        tools = await mcp_manager.initialize(server_script_path)
+        workflow = LangGraphMCPWorkflow(mcp_manager)
+        graph = workflow.create_graph().compile(checkpointer=workflow.memory)
+        
+        print("\nLangGraph MCP Client Started!")
+        print("Type your queries or 'quit' to exit.")
+        
+        config = {"configurable": {"thread_id": "1"}}
+        messages = []
+        
+        while True:
+            query = input("\nQuery: ").strip()
+            if query.lower() == 'quit':
+                break
+
+            messages.append(HumanMessage(content=query))
+            state = {
+                "messages": messages,
+                "tools": tools,
+                "current_tool_calls": [],
+                "tool_results": [],
+                "final_response": None
+            }
+            
+            try:
+                final_state = await graph.ainvoke(state, config)
+                messages = final_state.get("messages", messages)
+                
+                print(f"\nMessages in memory: {len(messages)}")
+                print("\n=== MEMORY STATE ===")
+                print(f"Total Messages: {len(messages)}")
+                print("\nMessages:")
+                for i, msg in enumerate(messages):
+                    print(f"{i}. {type(msg).__name__}: {msg.content}")
+                print("==================\n")
+                
+                if final_state.get("final_response"):
+                    print("\nResponse:", final_state["final_response"]) 
+                
+            except Exception as e:
+                print(f"\nError: {str(e)}")
+            
+    finally:
+        await mcp_manager.cleanup()
 
 if __name__ == "__main__":
-  import sys
-  if len(sys.argv) != 2:
-      print("Usage: python script.py <server_script>")
-      sys.exit(1)
-  
-  asyncio.run(main(sys.argv[1]))
+    import sys
+    if len(sys.argv) != 2:
+        print("Usage: python script.py <server_script>")
+        sys.exit(1)
+    
+    asyncio.run(main(sys.argv[1]))

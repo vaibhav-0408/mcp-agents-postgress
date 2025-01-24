@@ -21,7 +21,7 @@ ALLOWED_TABLES = {
    
 }
 
-GOAL_OWNER_ID =612
+GOAL_OWNER_ID =576
 
 DB_CONFIG = {
     "host": os.getenv('DB_HOST', 'localhost'),
@@ -29,7 +29,8 @@ DB_CONFIG = {
     "user": os.getenv('DB_USER'),
     "password": os.getenv('DB_PASSWORD'),
     "port": int(os.getenv('DB_PORT', '5432')),
-    "ssl": os.getenv('DB_SSL', 'require')  
+    "ssl": os.getenv('DB_SSL', 'require'),
+
 }
 
 def validate_config():
@@ -192,7 +193,7 @@ async def handle_list_tools() -> list[types.Tool]:
 
                     Key Fetching Logic:
                     - Fetch *goals* by filtering goal_owner_id = {GOAL_OWNER_ID}.
-                    - Fetch *tasks* associated with those goals using `tasks.goal_id = goals.id`and also refer following query for help.
+                    - to Fetch *tasks* associated with those goals and all data in tasks tableusing `tasks.goal_id = goals.id`and  also refer following query for help.
                     -SELECT g.id AS goal_id,
                             g.name AS goal_name,
                             g.description AS goal_description,
