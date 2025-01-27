@@ -17,6 +17,11 @@ load_dotenv(override=True)
 ALLOWED_TABLES = {
     "goals": ["SELECT"],
     "tasks": ["SELECT"],
+    "users":["SELECT"],
+    "organizations":["SELECT"],
+    "organizations_org_members":["SELECT"]
+   
+
    
    
 }
@@ -140,7 +145,7 @@ async def handle_list_tools() -> list[types.Tool]:
                     16. `name`: the name of the goal
                     17. `description`: a brief description of the goal
                     18. `goal_type`: the type of goal (e.g. objective, key result, etc.)
-                    19. `status`: status of the goal
+                    19. `status`:current status of the goal
                     20. `on_time_status`: the on-time status of the goal
                     21. `goal_success`: the success rate of the goal
 
@@ -193,6 +198,20 @@ async def handle_list_tools() -> list[types.Tool]:
 
                     Key Fetching Logic:
                     - Fetch *goals* by filtering goal_owner_id = {GOAL_OWNER_ID}.
+                    - to fetch data from users table use relation golas.goal_owner_id=users.id
+                    - to fetch data for  organization and its related tasks and users get help of following sql query=
+                                SELECT u.*, g.*, t.*, o.*
+                                        FROM organizations_org_members og
+                                        JOIN organizations o ON og.organization_id = o.org_owner_id
+                                        JOIN users u ON og.customusers_id = u.Id
+                                        LEFT JOIN goals g ON u.Id = g.goal_owner_id
+                                        LEFT JOIN tasks t ON g.id = t.goal_id
+                                        WHERE og.organization_id = (  
+                                            SELECT organization_id 
+                                            FROM organizations_org_members 
+                                            WHERE customusers_id = {GOAL_OWNER_ID}
+                                        )
+                                        ORDER BY u.Id;
                     - to Fetch *tasks* associated with those goals and all data in tasks tableusing `tasks.goal_id = goals.id`and  also refer following query for help.
                     -SELECT g.id AS goal_id,
                             g.name AS goal_name,
