@@ -90,14 +90,19 @@ class LangGraphMCPWorkflow:
 
 Important formatting rules:
 - Never use phrases like "Here's a response" or explain what you're doing
-- Never use "I" or "we" - always use "you" or "your"
+- Maintains second-person perspective
 - Present information in clear, natural language
-- Keep essential information only
-- Maintain consistent structure throughout"""
+- Keep focus on essential information,
+- Maintain consistent structure throughout
+
+"""
       self.memory = MemorySaver()
 
   async def analyze_query(self, state: State) -> Dict:
+       # get cuurent query from memory 
        current_query = state['messages'][-1].content
+
+       #get all memory from memory saver but not current query
        memory_context = "\n".join(f"{'User' if isinstance(m, HumanMessage) else 'Assistant'}: {m.content}" 
                                for m in state['messages'][:-1])
        
@@ -109,6 +114,7 @@ Important formatting rules:
        ]
 
        try:
+        # agent responsible for tool call and to decide which tool has to be called
            response = self.mcp_manager.groq.chat.completions.create(
                model="llama3-70b-8192", 
                messages=messages,
@@ -120,6 +126,7 @@ Important formatting rules:
            assistant_message = response.choices[0].message
            if hasattr(assistant_message, 'tool_calls') and assistant_message.tool_calls:
                return {
+                # stores current tool call in state current_tools call dict
                    "current_tool_calls": assistant_message.tool_calls,
                    "messages": []
                }
@@ -133,14 +140,14 @@ Important formatting rules:
                "final_response": f"Error: {str(e)}",
                "messages": []
            }
-
+# this function takes tool results from agents by analyzing state
   async def execute_tools(self, state: State) -> Dict:
       if not state.get("current_tool_calls"):
           return {}
 
       tool_results = []
       tool_messages = []
-
+      # check which tool is called using state current_tool_calls dict and generate response
       for tool_call in state["current_tool_calls"]:
           if isinstance(tool_call, dict):
               tool_name = tool_call.get('function', {}).get('name')
@@ -157,6 +164,7 @@ Important formatting rules:
               print(f"Tool execution error: {str(e)}")
 
       return {
+         #return tool results in append in tool_results dict in State
           "tool_results": tool_results,
           "messages": []
       }
@@ -169,6 +177,7 @@ Important formatting rules:
            }
            
        tool_results_text = "\n".join(f"{r['tool']}: {r['result']}" for r in state.get("tool_results", []))
+        #get all memory from memory saver except first query
        memory_context = "\n".join(f"{'User' if isinstance(m, HumanMessage) else 'Assistant'}: {m.content}" 
                         for m in state['messages'][:-1])
        system_content = f"{self.system_template}\n\nMemory Context:\n{memory_context}"
@@ -177,6 +186,7 @@ Important formatting rules:
             {"role": "user", "content": f"{state['messages'][-1].content}\n\nResults:\n{tool_results_text}"}
         ]
        try:
+        # agent responsible for generating response and adjusting response
            response = self.mcp_manager.groq.chat.completions.create(
                model="llama3-70b-8192",
                messages=messages,
