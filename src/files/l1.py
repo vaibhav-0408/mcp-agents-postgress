@@ -19,6 +19,7 @@ load_dotenv()
 def add_or_update(current: list, new: list) -> list:
   return new if new else current
 
+#define the state structure
 class State(TypedDict):
   messages: Annotated[List[BaseMessage], add_messages]
   tools: Annotated[List[dict], add_or_update]
@@ -26,6 +27,7 @@ class State(TypedDict):
   tool_results: Annotated[List[dict], add_or_update]
   final_response: Optional[str]
 
+# function to delete old messages from the state
 def delete_old_messages(state: State) -> Dict:
    messages = state["messages"]
    if len(messages) > 10:
@@ -33,6 +35,7 @@ def delete_old_messages(state: State) -> Dict:
        return {"messages": [RemoveMessage(id=m.id) for m in messages[:-10]]}
    return {}
 
+#mcp tool manager that accept tool list from server with the help of mcp servers
 class MCPToolManager:
   def __init__(self):
       self.session: Optional[ClientSession] = None
@@ -76,10 +79,11 @@ class MCPToolManager:
   async def cleanup(self):
       await self.exit_stack.aclose()
 
+# langgraph mcp workflow
 class LangGraphMCPWorkflow:
   def __init__(self, mcp_manager: MCPToolManager):
       self.mcp_manager = mcp_manager
-      self.system_template = """You are Plansom bot, a professional AI assistant. Your role is to:
+      self.system_template = """You are Plansom bot, a professional AI assistant and you have not access to delete or modify any data. Your role is to:
 1. Analyze the query and determine needed information
 2. Process results and provide clear, consistent insights
 3. Focus only on answering the specific question

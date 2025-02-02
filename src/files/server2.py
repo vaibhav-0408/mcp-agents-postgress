@@ -199,8 +199,8 @@ async def handle_list_tools() -> list[types.Tool]:
                     Key Fetching Logic:
                     - Fetch *goals* by filtering goal_owner_id = {GOAL_OWNER_ID}.
                     - to fetch data from users table use relation golas.goal_owner_id=users.id
-                    - to fetch data for  organization and its related tasks and users get help of following sql query=
-                                SELECT u.*, g.*, t.*, o.*
+                    - to fetch data for  organization and its related data  get help of following sql query=
+                                SELECT u.*, g.*, t.*, o.*,og.*
                                         FROM organizations_org_members og
                                         JOIN organizations o ON og.organization_id = o.org_owner_id
                                         JOIN users u ON og.customusers_id = u.Id
