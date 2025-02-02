@@ -1,0 +1,17 @@
+[project]
+name = "project1"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "anthropic>=0.45.2",
+    "asyncpg>=0.30.0",
+    "groq>=0.16.0",
+    "httpx>=0.28.1",
+    "langchain>=0.3.17",
+    "langchain-community>=0.3.16",
+    "langgraph>=0.2.69",
+    "mcp[cli]>=1.2.1",
+    "python-dotenv>=1.0.1",
+]
