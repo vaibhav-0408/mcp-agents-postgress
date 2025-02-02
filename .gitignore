@@ -6,7 +6,12 @@ dist/
 wheels/
 *.egg-info
 
+
 # Virtual environments
 .venv
+<<<<<<< HEAD
 
 .env
+=======
+.env
+>>>>>>> master
