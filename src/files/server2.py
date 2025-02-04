@@ -115,12 +115,10 @@ async def handle_list_tools() -> list[types.Tool]:
                     - Track progress and collaborate effectively within teams and organizations.
                     - Maintain a hierarchical structure:
                     - **Goal** → **Subgoal** → **Task**
-
                     Description of Tables goals and tasks:
                     the `goal_id` column in the `tasks` table is a foreign key that references the `id` column in the `goals` table. .
                     The relationship between the two tables can be represented as:`goals` (one) → `tasks` (many).
                     This is a one-to-many relationship, where one goal can have multiple tasks, but each task is associated with only one goal.
-                    
 
                   ### Database Schema Overview:
                     1. **Goals Table**:
@@ -171,7 +169,6 @@ async def handle_list_tools() -> list[types.Tool]:
                     18. `task_pulse` (varchar(50)): the pulse status of the task (e.g., "healthy", "unhealthy", etc.)
                     19. `created_at` (timestamp with time zone): the date and time the task was created
                     20. `updated_at` (timestamp with time zone): the date and time the task was last updated
-
                     21. `task_time_logged` (double precision): the total time logged for the task
                     22. `task_timestamp` (timestamp with time zone): the timestamp of the task
                     23. `task_value` (double precision): the value of the task
@@ -190,12 +187,10 @@ async def handle_list_tools() -> list[types.Tool]:
                     36. `status` (varchar(100)): the status of the task  (eg. "Active", "active","Inactive", "inactive"),
 
                     How to Approach a Question:
-                    
                     You will only retrive data for for goal_owner_id = {GOAL_OWNER_ID}
                     Relationships:
                     1. goals.goal_owner_id links goals to their owner.
                     2. goals.id = tasks.goal_id links tasks to their parent goal.
-
                     Key Fetching Logic:
                     - Fetch *goals* by filtering goal_owner_id = {GOAL_OWNER_ID}.
                     - to fetch data from users table use relation golas.goal_owner_id=users.id
@@ -228,7 +223,6 @@ async def handle_list_tools() -> list[types.Tool]:
                             tasks t ON g.id = t.goal_id
                         WHERE 
                             g.goal_owner_id ={GOAL_OWNER_ID};
-
                     You will only answer the question recived as precisely as possible, do not give extra and unwanted information.
                     Break down the question into its components related to goals and tasks.
                     Execute the appropriate PostgreSQL queries to fetch the necessary data.
