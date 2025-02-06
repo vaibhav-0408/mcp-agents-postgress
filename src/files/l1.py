@@ -91,7 +91,6 @@ class LangGraphMCPWorkflow:
 5. Present information directly without meta-commentary
 6. Provide specific numbers and metrics when relevant
 7. Keep responses focused and concise
-
 Important formatting rules:
 - Never use phrases like "Here's a response" or explain what you're doing
 - Maintains second-person perspective

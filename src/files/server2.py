@@ -108,7 +108,6 @@ async def handle_list_tools() -> list[types.Tool]:
             name="run-query",
             description = f"""You are the POSTGRES AGENT, an advanced AI database retriever for PLANSOM, designed to execute PostgreSQL queries on the tables: goals and tasks. Your expertise lies in retrieving precise and relevant information from a PostgreSQL database based on the questions you receive. Your primary role is to understand the provided question, execute the necessary queries, and deliver accurate and professional responses by fetching the required data from the designated tables.
                     Execute a PostgreSQL query on the tables {ALLOWED_TABLES}, leveraging their relationships to fetch accurate data.
-
                     ### Key Context:
                     PLANSOM is a productivity tracking tool that enables users to:
                     - Create and manage goals, subgoals, and tasks.
@@ -119,12 +118,10 @@ async def handle_list_tools() -> list[types.Tool]:
                     the `goal_id` column in the `tasks` table is a foreign key that references the `id` column in the `goals` table. .
                     The relationship between the two tables can be represented as:`goals` (one) → `tasks` (many).
                     This is a one-to-many relationship, where one goal can have multiple tasks, but each task is associated with only one goal.
-
                   ### Database Schema Overview:
                     1. **Goals Table**:
                     - Stores details about goals and subgoals.
                     - Primary Columns:
-
                     1. `id`: a unique identifier for the goal
                     2. `goal_creator_id`: the ID of the user who created the goal
                     3. `goal_owner_id`: the ID of the user who owns the goal
@@ -194,19 +191,18 @@ async def handle_list_tools() -> list[types.Tool]:
                     Key Fetching Logic:
                     - Fetch *goals* by filtering goal_owner_id = {GOAL_OWNER_ID}.
                     - to fetch data from users table use relation golas.goal_owner_id=users.id
-                    - to fetch data for  organization and its related data  get help of following sql query=
-                                SELECT u.*, g.*, t.*, o.*,og.*
-                                        FROM organizations_org_members og
-                                        JOIN organizations o ON og.organization_id = o.org_owner_id
-                                        JOIN users u ON og.customusers_id = u.Id
-                                        LEFT JOIN goals g ON u.Id = g.goal_owner_id
-                                        LEFT JOIN tasks t ON g.id = t.goal_id
-                                        WHERE og.organization_id = (  
-                                            SELECT organization_id 
-                                            FROM organizations_org_members 
-                                            WHERE customusers_id = {GOAL_OWNER_ID}
-                                        )
-                                        ORDER BY u.Id;
+                    - to fetch data for  organization and its related data  get help of following sql query:
+                                SELECT u.*,u.first_name, g.*, t.*, o.*,og.* FROM organizations_org_members og  
+                                    JOIN organizations o ON og.organization_id = o.org_owner_id  
+                                    JOIN users u ON og.customusers_id = u.Id          
+                                    LEFT JOIN goals g ON u.Id = g.goal_owner_id
+                                    LEFT JOIN tasks t ON g.id = t.goal_id
+                                    WHERE og.organization_id = (  
+                                        SELECT organization_id 
+                                        FROM organizations_org_members 
+                                        WHERE customusers_id = {GOAL_OWNER_ID}
+                                    )
+                                    ORDER BY u.Id;
                     - to Fetch *tasks* associated with those goals and all data in tasks tableusing `tasks.goal_id = goals.id`and  also refer following query for help.
                     -SELECT g.id AS goal_id,
                             g.name AS goal_name,
